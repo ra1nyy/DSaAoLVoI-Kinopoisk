@@ -1,0 +1,36 @@
+# PER PROJECT IGNORANCE LIST:
+# -------------------------------------
+
+.pre-commit-config.yaml
+.venv/
+venv/
+*.pyc
+__pycache__/
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.idea/
+.env
+.vscode/
+setup.cfg
+# Everywhere usual and standard ignorances:
+# -------------------------------------
+# Linux junk:
+.#*
+# Mac OS junk:
+.DS_Store
+._.DS_Store
+._*
+# Windows junk:
+Thumbs.db
+desktop.ini
+# Different backup and temp files:
+*~
+*.bak
+*.tmp
+*.old
+*.log
