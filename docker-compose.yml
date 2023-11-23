@@ -2,8 +2,8 @@ version: '3.8'
 services:
   extractor:
     build:
-      context: ./services/api_data_extractor
-      dockerfile: Dockerfile
+      context: "./services/api_data_extractor"
+      dockerfile: "Dockerfile"
     environment:
       UVICORN_SERVER_PORT: "8080"
       API_PREFIX: "/api"
@@ -23,19 +23,23 @@ services:
       KIBANA_SYSTEM_PASSWORD: "kibana_pass"
       FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
       BEATS_SYSTEM_PASSWORD: "beats_pass"
+      SPARK_HOST: "spark"
+      SPARK_PORT: "7077"
+      SPARK_USER: "spark"
     container_name: "extractor"
     volumes:
-      - ./services/api_data_extractor:/app/
-    command: bash entrypoint.sh
+      - "./services/api_data_extractor:/app/"
+    command: "bash entrypoint.sh"
     ports:
       - "8081:8080"
     depends_on:
-      - rabbitmq
+      - "rabbitmq"
+      - "spark"
 
   filter:
     build:
-      context: ./services/api_data_filter
-      dockerfile: Dockerfile
+      context: "./services/api_data_filter"
+      dockerfile: "Dockerfile"
     environment:
       UVICORN_SERVER_PORT: "8080"
       API_PREFIX: "/api"
@@ -55,19 +59,23 @@ services:
       KIBANA_SYSTEM_PASSWORD: "kibana_pass"
       FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
       BEATS_SYSTEM_PASSWORD: "beats_pass"
+      SPARK_HOST: "spark"
+      SPARK_PORT: "7077"
+      SPARK_USER: "spark"
     container_name: "filter"
     volumes:
-      - ./services/api_data_filter:/app/
-    command: bash entrypoint.sh
+      - "./services/api_data_filter:/app/"
+    command: "bash entrypoint.sh"
     ports:
       - "8082:8080"
     depends_on:
-      - rabbitmq
+      - "rabbitmq"
+      - "spark"
 
   receiver:
     build:
-      context: ./services/api_data_receiver
-      dockerfile: Dockerfile
+      context: "./services/api_data_receiver"
+      dockerfile: "Dockerfile"
     environment:
       UVICORN_SERVER_PORT: "8080"
       API_PREFIX: "/api"
@@ -87,29 +95,62 @@ services:
       KIBANA_SYSTEM_PASSWORD: "kibana_pass"
       FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
       BEATS_SYSTEM_PASSWORD: "beats_pass"
+      SPARK_HOST: "spark"
+      SPARK_PORT: "7077"
+      SPARK_USER: "spark"
     container_name: "receiver"
     volumes:
-      - ./services/api_data_receiver:/app/
-    command: bash entrypoint.sh
+      - "./services/api_data_receiver:/app/"
+    command: "bash entrypoint.sh"
     ports:
       - "8083:8080"
     depends_on:
-      - rabbitmq
+      - "rabbitmq"
+      - "spark"
 
   rabbitmq:
-    image: rabbitmq:3.10.7-management
-    hostname: rabbitmq
-    restart: always
+    image: "rabbitmq:3.10.7-management"
+    hostname: "rabbitmq"
+    restart: "always"
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: "rabbitmq_pass"
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648"
     container_name: "rabbitmq"
     volumes:
-      - ./infrastructure/rabbitmq:/var/lib/rabbitmq
+      - "./infrastructure/rabbitmq:/var/lib/rabbitmq"
     ports:
       - "15672:15672"
       - "5672:5672"
+
+  spark:
+    image: "docker.io/bitnami/spark:3.5"
+    hostname: "spark"
+    environment:
+      SPARK_MODE: "master"
+      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
+      SPARK_RPC_ENCRYPTION_ENABLED: "no"
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
+      SPARK_SSL_ENABLED: "no"
+      SPARK_USER: "spark"
+    container_name: "spark"
+    ports:
+      - "8084:8084"
+      - "7077:7077"
+  spark-worker:
+    image: "docker.io/bitnami/spark:3.5"
+    hostname: "spark-worker"
+    environment:
+      SPARK_MODE: "worker"
+      SPARK_MASTER_URL: "spark://spark:7077"
+      SPARK_WORKER_MEMORY: "1G"
+      SPARK_WORKER_CORES: "1"
+      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
+      SPARK_RPC_ENCRYPTION_ENABLED: "no"
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
+      SPARK_SSL_ENABLED: "no"
+      SPARK_USER: "spark"
+    container_name: "spark-worker"
 
 #  elasticsearch:
 #    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
