@@ -1,237 +1,267 @@
 version: '3.8'
 services:
-  extractor:
-    build:
-      context: "./services/api_data_extractor"
-      dockerfile: "Dockerfile"
-    environment:
-      UVICORN_SERVER_PORT: "8080"
-      API_PREFIX: "/api"
-      WORKERS_COUNT: "1"
-      BROKER_HOST: "rabbitmq"
-      BROKER_PORT: "5672"
-      BROKER_USER: "rabbitmq"
-      BROKER_PASS: "rabbitmq_pass"
-      ELASTIC_HOST: "elasticsearch"
-      ELASTIC_PORT: "9300"
-      ELASTIC_PASSWORD: "elasticsearch_pass"
-      LOGSTASH_HOST: "logstash"
-      LOGSTASH_PORT: "50000"
-      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
-      KIBANA_HOST: "kibana"
-      KIBANA_PORT: "5601"
-      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
-      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
-      BEATS_SYSTEM_PASSWORD: "beats_pass"
-      SPARK_HOST: "spark"
-      SPARK_PORT: "7077"
-      SPARK_USER: "spark"
-    container_name: "extractor"
-    volumes:
-      - "./services/api_data_extractor:/app/"
-    command: "bash entrypoint.sh"
-    ports:
-      - "8081:8080"
-    depends_on:
-      - "rabbitmq"
-      - "spark"
-
-  filter:
-    build:
-      context: "./services/api_data_filter"
-      dockerfile: "Dockerfile"
-    environment:
-      UVICORN_SERVER_PORT: "8080"
-      API_PREFIX: "/api"
-      WORKERS_COUNT: "1"
-      BROKER_HOST: "rabbitmq"
-      BROKER_PORT: "5672"
-      BROKER_USER: "rabbitmq"
-      BROKER_PASS: "rabbitmq_pass"
-      ELASTIC_HOST: "elasticsearch"
-      ELASTIC_PORT: "9300"
-      ELASTIC_PASSWORD: "elasticsearch_pass"
-      LOGSTASH_HOST: "logstash"
-      LOGSTASH_PORT: "50000"
-      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
-      KIBANA_HOST: "kibana"
-      KIBANA_PORT: "5601"
-      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
-      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
-      BEATS_SYSTEM_PASSWORD: "beats_pass"
-      SPARK_HOST: "spark"
-      SPARK_PORT: "7077"
-      SPARK_USER: "spark"
-    container_name: "filter"
-    volumes:
-      - "./services/api_data_filter:/app/"
-    command: "bash entrypoint.sh"
-    ports:
-      - "8082:8080"
-    depends_on:
-      - "rabbitmq"
-      - "spark"
-
-  receiver:
-    build:
-      context: "./services/api_data_receiver"
-      dockerfile: "Dockerfile"
-    environment:
-      UVICORN_SERVER_PORT: "8080"
-      API_PREFIX: "/api"
-      WORKERS_COUNT: "1"
-      BROKER_HOST: "rabbitmq"
-      BROKER_PORT: "5672"
-      BROKER_USER: "rabbitmq"
-      BROKER_PASS: "rabbitmq_pass"
-      ELASTIC_HOST: "elasticsearch"
-      ELASTIC_PORT: "9300"
-      ELASTIC_PASSWORD: "elasticsearch_pass"
-      LOGSTASH_HOST: "logstash"
-      LOGSTASH_PORT: "50000"
-      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
-      KIBANA_HOST: "kibana"
-      KIBANA_PORT: "5601"
-      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
-      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
-      BEATS_SYSTEM_PASSWORD: "beats_pass"
-      SPARK_HOST: "spark"
-      SPARK_PORT: "7077"
-      SPARK_USER: "spark"
-    container_name: "receiver"
-    volumes:
-      - "./services/api_data_receiver:/app/"
-    command: "bash entrypoint.sh"
-    ports:
-      - "8083:8080"
-    depends_on:
-      - "rabbitmq"
-      - "spark"
-
-  rabbitmq:
-    image: "rabbitmq:3.10.7-management"
-    hostname: "rabbitmq"
-    restart: "always"
-    environment:
-      RABBITMQ_DEFAULT_USER: "rabbitmq"
-      RABBITMQ_DEFAULT_PASS: "rabbitmq_pass"
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648"
-    container_name: "rabbitmq"
-    volumes:
-      - "./infrastructure/rabbitmq:/var/lib/rabbitmq"
-    ports:
-      - "15672:15672"
-      - "5672:5672"
-
-  spark:
-    image: "docker.io/bitnami/spark:3.5"
-    hostname: "spark"
-    environment:
-      SPARK_MODE: "master"
-      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
-      SPARK_RPC_ENCRYPTION_ENABLED: "no"
-      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
-      SPARK_SSL_ENABLED: "no"
-      SPARK_USER: "spark"
-    container_name: "spark"
-    ports:
-      - "8084:8084"
-      - "7077:7077"
-  spark-worker:
-    image: "docker.io/bitnami/spark:3.5"
-    hostname: "spark-worker"
-    environment:
-      SPARK_MODE: "worker"
-      SPARK_MASTER_URL: "spark://spark:7077"
-      SPARK_WORKER_MEMORY: "1G"
-      SPARK_WORKER_CORES: "1"
-      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
-      SPARK_RPC_ENCRYPTION_ENABLED: "no"
-      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
-      SPARK_SSL_ENABLED: "no"
-      SPARK_USER: "spark"
-    container_name: "spark-worker"
-
-#  elasticsearch:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
-#    hostname: elasticsearch
-#    volumes:
-#      - ./infrastructure/elk/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
-#      - ./infrastructure/elk/elasticsearch:/usr/share/elasticsearch/data:Z
-#    ports:
-#      - "9200:9200"
-#      - "9300:9300"
+#  extractor:
+#    build:
+#      context: "./services/api_data_extractor"
+#      dockerfile: "Dockerfile"
 #    environment:
-#      node.name: elasticsearch
-#      ES_JAVA_OPTS: -Xms512m -Xmx512m
-#      # Bootstrap password.
-#      # Used to initialize the keystore during the initial startup of
-#      # Elasticsearch. Ignored on subsequent runs.
+#      UVICORN_SERVER_PORT: "8080"
+#      API_PREFIX: "/api"
+#      WORKERS_COUNT: "1"
+#      BROKER_HOST: "rabbitmq"
+#      BROKER_PORT: "5672"
+#      BROKER_USER: "rabbitmq"
+#      BROKER_PASS: "rabbitmq_pass"
+#      ELASTIC_HOST: "elasticsearch"
+#      ELASTIC_PORT: "9300"
 #      ELASTIC_PASSWORD: "elasticsearch_pass"
-#      # Use single node discovery in order to disable production mode and avoid bootstrap checks.
-#      # see: https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
-#      discovery.type: single-node
-#    container_name: "elasticsearch"
-#    restart: unless-stopped
-#
-#  logstash:
-#    image: docker.elastic.co/logstash/logstash:8.11.1
-#    hostname: logstash
-#    volumes:
-#      - ./infrastructure/elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
-#      - ./infrastructure/elk/logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
-#    ports:
-#      - "5044:5044"
-#      - "50000:50000/tcp"
-#      - "50000:50000/udp"
-#      - "9600:9600"
-#    environment:
-#      LS_JAVA_OPTS: -Xms256m -Xmx256m
+#      LOGSTASH_HOST: "logstash"
+#      LOGSTASH_PORT: "50000"
 #      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
-#    container_name: "logstash"
-#    depends_on:
-#      - elasticsearch
-#    restart: unless-stopped
-#
-#  filebeat:
-#    image: docker.elastic.co/beats/filebeat:8.11.1
-#    # Run as 'root' instead of 'filebeat' (uid 1000) to allow reading
-#    # 'docker.sock' and the host's filesystem.
-#    hostname: filebeat
-#    user: root
-#    command:
-#      # Log to stderr.
-#      - -e
-#      # Disable config file permissions checks. Allows mounting
-#      # 'config/filebeat.yml' even if it's not owned by root.
-#      # see: https://www.elastic.co/guide/en/beats/libbeat/current/config-file-permissions.html
-#      - --strict.perms=false
-#    volumes:
-#      - ./infrastructure/elk/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro,Z
-#      - type: bind
-#        source: /var/lib/docker/containers
-#        target: /var/lib/docker/containers
-#        read_only: true
-#      - type: bind
-#        source: /var/run/docker.sock
-#        target: /var/run/docker.sock
-#        read_only: true
-#    environment:
+#      KIBANA_HOST: "kibana"
+#      KIBANA_PORT: "5601"
+#      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
 #      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
 #      BEATS_SYSTEM_PASSWORD: "beats_pass"
-#    container_name: "filebeat"
-#    depends_on:
-#      - elasticsearch
-#
-#  kibana:
-#    image: docker.elastic.co/kibana/kibana:8.11.1
+#      SPARK_HOST: "spark"
+#      SPARK_PORT: "7077"
+#      SPARK_USER: "spark"
+#    container_name: "extractor"
 #    volumes:
-#      - ./infrastructure/elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+#      - "./services/api_data_extractor:/app/"
+#    command: "bash entrypoint.sh"
 #    ports:
-#      - "5601:5601"
-#    environment:
-#      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+#      - "8081:8080"
 #    depends_on:
-#      - elasticsearch
-#    restart: unless-stopped
+#      - "rabbitmq"
+#      - "spark"
+#
+#  filter:
+#    build:
+#      context: "./services/api_data_filter"
+#      dockerfile: "Dockerfile"
+#    environment:
+#      UVICORN_SERVER_PORT: "8080"
+#      API_PREFIX: "/api"
+#      WORKERS_COUNT: "1"
+#      BROKER_HOST: "rabbitmq"
+#      BROKER_PORT: "5672"
+#      BROKER_USER: "rabbitmq"
+#      BROKER_PASS: "rabbitmq_pass"
+#      ELASTIC_HOST: "elasticsearch"
+#      ELASTIC_PORT: "9300"
+#      ELASTIC_PASSWORD: "elasticsearch_pass"
+#      LOGSTASH_HOST: "logstash"
+#      LOGSTASH_PORT: "50000"
+#      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
+#      KIBANA_HOST: "kibana"
+#      KIBANA_PORT: "5601"
+#      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+#      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
+#      BEATS_SYSTEM_PASSWORD: "beats_pass"
+#      SPARK_HOST: "spark"
+#      SPARK_PORT: "7077"
+#      SPARK_USER: "spark"
+#    container_name: "filter"
+#    volumes:
+#      - "./services/api_data_filter:/app/"
+#    command: "bash entrypoint.sh"
+#    ports:
+#      - "8082:8080"
+#    depends_on:
+#      - "rabbitmq"
+#      - "spark"
+#
+#  receiver:
+#    build:
+#      context: "./services/api_data_receiver"
+#      dockerfile: "Dockerfile"
+#    environment:
+#      UVICORN_SERVER_PORT: "8080"
+#      API_PREFIX: "/api"
+#      WORKERS_COUNT: "1"
+#      BROKER_HOST: "rabbitmq"
+#      BROKER_PORT: "5672"
+#      BROKER_USER: "rabbitmq"
+#      BROKER_PASS: "rabbitmq_pass"
+#      ELASTIC_HOST: "elasticsearch"
+#      ELASTIC_PORT: "9300"
+#      ELASTIC_PASSWORD: "elasticsearch_pass"
+#      LOGSTASH_HOST: "logstash"
+#      LOGSTASH_PORT: "50000"
+#      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
+#      KIBANA_HOST: "kibana"
+#      KIBANA_PORT: "5601"
+#      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+#      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
+#      BEATS_SYSTEM_PASSWORD: "beats_pass"
+#      SPARK_HOST: "spark"
+#      SPARK_PORT: "7077"
+#      SPARK_USER: "spark"
+#    container_name: "receiver"
+#    volumes:
+#      - "./services/api_data_receiver:/app/"
+#    command: "bash entrypoint.sh"
+#    ports:
+#      - "8083:8080"
+#    depends_on:
+#      - "rabbitmq"
+#      - "spark"
+#
+#  rabbitmq:
+#    image: "rabbitmq:3.10.7-management"
+#    hostname: "rabbitmq"
+#    restart: "always"
+#    environment:
+#      RABBITMQ_DEFAULT_USER: "rabbitmq"
+#      RABBITMQ_DEFAULT_PASS: "rabbitmq_pass"
+#      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648"
+#    container_name: "rabbitmq"
+#    volumes:
+#      - "./infrastructure/rabbitmq:/var/lib/rabbitmq"
+#    ports:
+#      - "15672:15672"
+#      - "5672:5672"
+#
+#  spark:
+#    image: "docker.io/bitnami/spark:3.5"
+#    hostname: "spark"
+#    environment:
+#      SPARK_MODE: "master"
+#      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
+#      SPARK_RPC_ENCRYPTION_ENABLED: "no"
+#      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
+#      SPARK_SSL_ENABLED: "no"
+#      SPARK_USER: "spark"
+#    container_name: "spark"
+#    ports:
+#      - "8084:8084"
+#      - "7077:7077"
+#  spark-worker:
+#    image: "docker.io/bitnami/spark:3.5"
+#    hostname: "spark-worker"
+#    environment:
+#      SPARK_MODE: "worker"
+#      SPARK_MASTER_URL: "spark://spark:7077"
+#      SPARK_WORKER_MEMORY: "1G"
+#      SPARK_WORKER_CORES: "1"
+#      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
+#      SPARK_RPC_ENCRYPTION_ENABLED: "no"
+#      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
+#      SPARK_SSL_ENABLED: "no"
+#      SPARK_USER: "spark"
+#    container_name: "spark-worker"
 
+  elasticsearch:
+    container_name: elasticsearch
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    volumes:
+      - ./infrastructure/elk/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
+      - ./infrastructure/elk/elasticsearch:/usr/share/elasticsearch/data:Z
+    environment:
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=elastic
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    stdin_open: true
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "50"
+    restart: unless-stopped
+
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    volumes:
+      - ./infrastructure/elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    links:
+      - elasticsearch:elasticsearch
+    depends_on:
+      - elasticsearch
+    stdin_open: true
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "50"
+    restart: unless-stopped
+
+  logstash:
+    container_name: logstash
+    hostname: logstash
+    image: docker.elastic.co/logstash/logstash:8.11.1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./infrastructure/elk/logstash/pipeline:/usr/share/logstash/pipeline:ro,Z
+#      - ./infrastructure/elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro,Z
+      - ./infrastructure/elk/logstash/templates/logstash.template.json:/usr/share/logstash/templates/logstash.template.json
+    ports:
+      - "5044:5044"
+    environment:
+#      - XPACK_MANAGEMENT_ENABLED=true
+      - XPACK_MANAGEMENT_ELASTICSEARCH_HOSTS=elasticsearch:9200
+      - XPACK_MANAGEMENT_ELASTICSEARCH_USERNAME=logstash_system
+      - XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD=elastic
+      - XPACK_MONITORING_ENABLED=false
+    depends_on:
+      - elasticsearch
+#    stdin_open: true
+    tty: true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "50"
+    restart: unless-stopped
+
+  filebeat:
+    user: root
+    container_name: filebeat
+    image: docker.elastic.co/beats/filebeat:8.11.1
+    links:
+      - logstash:logstash
+    depends_on:
+      - logstash
+    volumes:
+      - /var/run/docker.sock:/host_docker/docker.sock
+      - /var/lib/docker:/host_docker/var/lib/docker
+      - ./infrastructure/elk/filebeat/mylog:/usr/share/filebeat/mylog
+      - ./infrastructure/elk/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    command: [ "--strict.perms=false" ]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+#    stdin_open: true
+    tty: true
+    deploy:
+      mode: global
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "50"
+    restart: unless-stopped
