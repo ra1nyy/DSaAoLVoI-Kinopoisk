@@ -6,10 +6,10 @@ services:
       dockerfile: Dockerfile
     environment:
       UVICORN_SERVER_PORT: "8080"
-      API_PREFIX: "/extractor/api"
+      API_PREFIX: "/api"
       WORKERS_COUNT: "1"
       BROKER_HOST: "rabbitmq"
-      BROKER_PORT: "15672"
+      BROKER_PORT: "5672"
       BROKER_USER: "rabbitmq"
       BROKER_PASS: "rabbitmq_pass"
       ELASTIC_HOST: "elasticsearch"
@@ -24,6 +24,8 @@ services:
       FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
       BEATS_SYSTEM_PASSWORD: "beats_pass"
     container_name: "extractor"
+    volumes:
+      - ./services/api_data_extractor:/app/
     command: bash entrypoint.sh
     ports:
       - "8081:8080"
@@ -36,13 +38,26 @@ services:
       dockerfile: Dockerfile
     environment:
       UVICORN_SERVER_PORT: "8080"
-      API_PREFIX: "/filter/api"
+      API_PREFIX: "/api"
       WORKERS_COUNT: "1"
       BROKER_HOST: "rabbitmq"
-      BROKER_PORT: "15672"
+      BROKER_PORT: "5672"
       BROKER_USER: "rabbitmq"
-      BROKER_PASS: "rabbitmq"
+      BROKER_PASS: "rabbitmq_pass"
+      ELASTIC_HOST: "elasticsearch"
+      ELASTIC_PORT: "9300"
+      ELASTIC_PASSWORD: "elasticsearch_pass"
+      LOGSTASH_HOST: "logstash"
+      LOGSTASH_PORT: "50000"
+      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
+      KIBANA_HOST: "kibana"
+      KIBANA_PORT: "5601"
+      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
+      BEATS_SYSTEM_PASSWORD: "beats_pass"
     container_name: "filter"
+    volumes:
+      - ./services/api_data_filter:/app/
     command: bash entrypoint.sh
     ports:
       - "8082:8080"
@@ -55,13 +70,26 @@ services:
       dockerfile: Dockerfile
     environment:
       UVICORN_SERVER_PORT: "8080"
-      API_PREFIX: "/receiver/api"
+      API_PREFIX: "/api"
       WORKERS_COUNT: "1"
       BROKER_HOST: "rabbitmq"
-      BROKER_PORT: "15672"
+      BROKER_PORT: "5672"
       BROKER_USER: "rabbitmq"
-      BROKER_PASS: "rabbitmq"
+      BROKER_PASS: "rabbitmq_pass"
+      ELASTIC_HOST: "elasticsearch"
+      ELASTIC_PORT: "9300"
+      ELASTIC_PASSWORD: "elasticsearch_pass"
+      LOGSTASH_HOST: "logstash"
+      LOGSTASH_PORT: "50000"
+      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
+      KIBANA_HOST: "kibana"
+      KIBANA_PORT: "5601"
+      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
+      BEATS_SYSTEM_PASSWORD: "beats_pass"
     container_name: "receiver"
+    volumes:
+      - ./services/api_data_receiver:/app/
     command: bash entrypoint.sh
     ports:
       - "8083:8080"
@@ -81,6 +109,7 @@ services:
       - ./infrastructure/rabbitmq:/var/lib/rabbitmq
     ports:
       - "15672:15672"
+      - "5672:5672"
 
 #  elasticsearch:
 #    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
