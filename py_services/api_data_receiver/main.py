@@ -1,6 +1,4 @@
 import logging
-import multiprocessing
-import os
 import random
 import string
 import time
@@ -9,6 +7,8 @@ from fastapi.openapi.utils import get_openapi
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from dotenv import load_dotenv
+
+from routers.receive_data_router import receive_data_router
 
 load_dotenv()
 
@@ -54,27 +54,6 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-@app.on_event("startup")
-async def startup_event():
-    process_name = multiprocessing.current_process().name
-    logger.info(f"Process {process_name} started")
-
-    for k, v in os.environ.items():
-        logger.info(f"{k}={v}")
-
-    # await db.connect()
-    # await activate_celery()
-
-    logger.info("Server started")
-    logger.info("Open http://localhost:8000/api/ping")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    # await db.close()
-    logger.info("Server shutting down")
-
-
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -86,5 +65,8 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
+app.include_router(receive_data_router)
+# docs_router(app)
 
 app.openapi = custom_openapi
