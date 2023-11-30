@@ -32,21 +32,24 @@ class HandlerDataService:
                                       "movie.year",
                                       col("movie.rating.kp").alias("rating"),
                                       col("movie.countries.name").alias("country"))
-        movies_fields.show()
+        # movies_fields.show()
 
         # Преобразуйте DataFrame в RDD и маппинг для создания объектов
         selected_objects = movies_fields.rdd.map(
             lambda row: {"title": row["name"],
                          "year": row["year"],
-                         "country": row["country"][0],
+                         "country": row["country"][0] if row["country"]
+                                                         and isinstance(row["country"], list)
+                                                         and len(row["country"]) > 0 else "",
                          "rating": row["rating"],
-                         "genre": row["genre"][0]})
+                         "genre": row["genre"][0] if row["genre"]
+                                                     and isinstance(row["genre"], list)
+                                                     and len(row["genre"]) > 0 else ""})
 
         # Соберите результат в список (может потребоваться использовать collect() осторожно)
         result_list = selected_objects.collect()
-        for obj in result_list:
-            print(obj)
 
+        return result_list
 
     def handle_data(self, data):
         self._write_data(data)

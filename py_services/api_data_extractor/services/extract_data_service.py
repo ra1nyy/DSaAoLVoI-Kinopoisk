@@ -22,13 +22,16 @@ class ExtractDataService:
         self.kp_api_access = KinopoiskDev(token=self.config.KINOPOISK_API_TOKEN)
 
     async def extract_data(self):
-        movies = await self.kp_api_access.afind_many_movie(params=[
-            MovieParams(keys=MovieField.PAGE, value="1"),
-            MovieParams(keys=MovieField.LIMIT, value="2000"),
-        ])
-        await self._send_data_to_receiver(movies.dict())
+        for i in range(101, 105):
+            print(f'[{datetime.now()}] EXTRACTER SERVICE: Request to Kinopoisk API (HTTP)')
+            movies = await self.kp_api_access.afind_many_movie(params=[
+                MovieParams(keys=MovieField.PAGE, value=f"{i+1}"),
+                MovieParams(keys=MovieField.LIMIT, value="2000"),
+            ])
+            await self._send_data_to_receiver(movies.dict())
 
         return movies
 
     async def _send_data_to_receiver(self, data):
+        print(f'[{datetime.now()}] EXTRACTER SERVICE: send request with Movies to receiver (WITH HTTP)')
         requests.post(self.config.RECEIVER_URL, data=json.dumps(data, default=json_serial))

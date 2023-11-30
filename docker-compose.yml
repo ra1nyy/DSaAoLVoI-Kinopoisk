@@ -109,7 +109,7 @@ services:
 #      - "spark"
 #
   rabbitmq:
-    image: "rabbitmq:3.10.7-management"
+    image: "rabbitmq:3-management"
     hostname: "rabbitmq"
     restart: "always"
     environment:
