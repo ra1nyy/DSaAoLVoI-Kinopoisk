@@ -26,8 +26,7 @@ class HandlerDataService:
         # {"movies": [{"title": "harry potter 8", "year": 2008, "country": "USA", "rating": 50, "genre": "science"}]}
         docs = self.spark_handler.select("docs")
         movies = docs.withColumn("movies", docs["docs"]).drop("docs").selectExpr("explode(movies) as movie")
-        # movies.show()
-        # movies.printSchema()
+
         movies_fields = movies.select("movie.name",
                                       col("movie.genres.name").alias("genre"),
                                       "movie.year",
@@ -48,9 +47,6 @@ class HandlerDataService:
         for obj in result_list:
             print(obj)
 
-        # pprint.pprint(result_list)
-
-        # movies_fields.write.json(self.output_path)
 
     def handle_data(self, data):
         self._write_data(data)

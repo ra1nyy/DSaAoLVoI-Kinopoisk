@@ -1,12 +1,12 @@
 import json
 
-from aio_pika import connect_robust, IncomingMessage
+from aio_pika import connect_robust, IncomingMessage, Message, DeliveryMode, connect
 
 from services.handler_data_service import HandlerDataService
 from settings.config import Config
 
 
-class ReceiveDataService:
+class RabbitMQService:
     def __init__(self, handler: HandlerDataService):
         self.config = Config()
         self._data = None
@@ -18,7 +18,9 @@ class ReceiveDataService:
         async with message.process():
             body = message.body.decode()
             self._data = json.loads(body)
-            self.handler.handle_data(self._data)
+            data = self.handler.handle_data(self._data)
+            self.handler.get_filtered_movies()
+            await self.send_to_rabbitmq(data)
 
     async def get_from_rabbitmq(self):
         # Подключение к RabbitMQ
@@ -29,3 +31,27 @@ class ReceiveDataService:
         queue = await channel.declare_queue(self.config.QUEUE_NAME)
         # Установка callback-функции для обработки сообщений
         await queue.consume(lambda message: self._on_message(message))
+
+    @staticmethod
+    def _prepare_data(data: list | dict) -> Message:
+        message_body = bytes(json.dumps(data), 'utf-8')
+
+        return Message(
+            message_body,
+            delivery_mode=DeliveryMode.PERSISTENT,
+        )
+
+    async def send_to_rabbitmq(self, data):
+        connection = await connect(self.config.RABBIT_URL)
+
+        async with connection:
+            channel = await connection.channel()
+
+            # Отправка сообщения
+            message = self._prepare_data(data)
+
+            # Отправка сообщения в очередь
+            exchange = await channel.get_exchange("log_exchange")
+            await exchange.publish(message, routing_key="app_version_queue")
+
+            print(f" [x] Sent kinopoisk data!")
