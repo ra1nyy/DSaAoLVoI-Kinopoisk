@@ -108,20 +108,20 @@ services:
 #      - "rabbitmq"
 #      - "spark"
 #
-#  rabbitmq:
-#    image: "rabbitmq:3.10.7-management"
-#    hostname: "rabbitmq"
-#    restart: "always"
-#    environment:
-#      RABBITMQ_DEFAULT_USER: "rabbitmq"
-#      RABBITMQ_DEFAULT_PASS: "rabbitmq_pass"
-#      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648"
-#    container_name: "rabbitmq"
-#    volumes:
-#      - "./infrastructure/rabbitmq:/var/lib/rabbitmq"
-#    ports:
-#      - "15672:15672"
-#      - "5672:5672"
+  rabbitmq:
+    image: "rabbitmq:3.10.7-management"
+    hostname: "rabbitmq"
+    restart: "always"
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq_pass"
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error},{default,error}] disk_free_limit 2147483648"
+    container_name: "rabbitmq"
+    volumes:
+      - "./infrastructure/rabbitmq:/var/lib/rabbitmq"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
 #
 #  spark:
 #    image: "docker.io/bitnami/spark:3.5"
@@ -230,35 +230,6 @@ services:
       - elasticsearch
 #    stdin_open: true
     tty: true
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "50"
-    restart: unless-stopped
-
-  filebeat:
-    user: root
-    container_name: filebeat
-    image: docker.elastic.co/beats/filebeat:8.11.1
-    links:
-      - logstash:logstash
-    depends_on:
-      - logstash
-    volumes:
-      - /var/run/docker.sock:/host_docker/docker.sock
-      - /var/lib/docker:/host_docker/var/lib/docker
-      - ./infrastructure/elk/filebeat/mylog:/usr/share/filebeat/mylog
-      - ./infrastructure/elk/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
-    command: [ "--strict.perms=false" ]
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-#    stdin_open: true
-    tty: true
-    deploy:
-      mode: global
     logging:
       driver: "json-file"
       options:
