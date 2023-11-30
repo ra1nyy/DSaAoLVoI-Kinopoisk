@@ -24,6 +24,7 @@ app.add_middleware(
 app.include_router(extract_data_router)
 docs_router(app)
 
+
 @app.get('/')
 def index():
     return {'message': 'Everything online'}

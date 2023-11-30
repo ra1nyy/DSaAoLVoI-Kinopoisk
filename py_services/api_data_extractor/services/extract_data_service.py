@@ -1,26 +1,34 @@
+import datetime
+
 from settings.config import Config
 
-from kinopoisk_dev import KinopoiskDev
-from kinopoisk_dev.model import Movie
-from fastapi.exceptions import HTTPException
-import aiohttp
+from kinopoisk_dev import KinopoiskDev, MovieField, MovieParams
+import json
+from datetime import datetime, date
+import requests
+
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError("Type %s not serializable" % type(obj))
 
 
 class ExtractDataService:
     def __init__(self):
-        self.kp_api_access = KinopoiskDev(token="ACBSC0V-ST9M9MQ-P63YSZN-8CG8B2N")
         self.config = Config()
+        self.kp_api_access = KinopoiskDev(token=self.config.KINOPOISK_API_TOKEN)
 
     async def extract_data(self):
-        movie: Movie = await self.kp_api_access.arandom()
-        return movie
-        #await self._send_data_to_receiver(movie.dict())
+        movies = await self.kp_api_access.afind_many_movie(params=[
+            MovieParams(keys=MovieField.PAGE, value="1"),
+            MovieParams(keys=MovieField.LIMIT, value="2000"),
+        ])
+        await self._send_data_to_receiver(movies.dict())
 
-    async def _send_data_to_receiver(self, data: dict):
-        async with aiohttp.ClientSession() as session:
-            async with session.post(self.config.RECEIVER_URL) as response:
-                if response.status != 200:
-                    raise HTTPException(
-                        403,
-                        f"Response from receiver not 200: {response.status}",
-                    )
+        return movies
+
+    async def _send_data_to_receiver(self, data):
+        requests.post(self.config.RECEIVER_URL, data=json.dumps(data, default=json_serial))

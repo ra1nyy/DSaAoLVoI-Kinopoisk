@@ -17,16 +17,20 @@ class ReceiveDataService:
             delivery_mode=DeliveryMode.PERSISTENT,
         )
 
-    async def send_to_rabbitmq(self, data: list | dict):
+    async def send_to_rabbitmq(self, data):
         connection = await connect(self.config.RABBIT_URL)
 
         async with connection:
             channel = await connection.channel()
 
-            logs_exchange = await channel.declare_exchange(
-                "logs", ExchangeType.FANOUT,
-            )
+            # Объявление очереди (если не существует)
+            queue_name = self.config.QUEUE_NAME
+            await channel.declare_queue(queue_name)
 
-            await logs_exchange.publish(self._prepare_data(data), routing_key="info")
+            # Отправка сообщения
+            message = self._prepare_data(data)
+
+            # Отправка сообщения в очередь
+            await channel.default_exchange.publish(message, routing_key=queue_name)
 
             print(f" [x] Sent kinopoisk data!")

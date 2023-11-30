@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from kinopoisk_dev.model import Movie
+from kinopoisk_dev.model import MovieDocsResponseDto
 
 from services.extract_data_service import ExtractDataService
 
@@ -10,7 +10,7 @@ extract_data_router = APIRouter(
 
 @extract_data_router.post(
     "/",
-    response_model=Movie,
+    response_model=MovieDocsResponseDto,
     responses={403: {'description': 'external API access error'}},
 )
 async def extract_data():

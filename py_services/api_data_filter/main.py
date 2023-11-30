@@ -1,90 +1,77 @@
-import logging
-import multiprocessing
-import os
-import random
-import string
-import time
-from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
-from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
-from dotenv import load_dotenv
+import asyncio
+from services import ReceiveDataService, HandlerDataService
 
-load_dotenv()
-
-logger = logging.getLogger(__name__)
-
-app = FastAPI()
-# app.include_router(api.router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
 
 
-@app.get('/')
-def index():
-    return {'message': 'Everything online'}
+    async def main(loop):
+        print('Start main loop!')
+        handler_data = HandlerDataService()
+        handler_data.get_filtered_movies()
+
+        # receive_data = ReceiveDataService(handler=handler_data)
+        # await receive_data.get_from_rabbitmq()
+        # print(f'Listen: {receive_data.config.QUEUE_NAME}')
 
 
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    """
-    Middleware for log requests and their answers
-    :param request:
-    :param call_next:
-    :return:
-    """
-    idem = f"{random.choices(string.ascii_uppercase)}      {string.digits}"
-    logger.info(f"rid={idem} start request path={request.url.path}")
-    start_time = time.time()
+    loop.run_until_complete(main(loop))
+    loop.run_forever()
 
-    response = await call_next(request)
-
-    process_time = (time.time() - start_time) * 1000
-    formatted_process_time = f"{process_time:.2f}"
-    logger.info(
-        f"rid={idem} completed_in={formatted_process_time}ms status_code={response.status_code}"
-    )
-
-    return response
-
-
-@app.on_event("startup")
-async def startup_event():
-    process_name = multiprocessing.current_process().name
-    logger.info(f"Process {process_name} started")
-
-    for k, v in os.environ.items():
-        logger.info(f"{k}={v}")
-
-    # await db.connect()
-    # await activate_celery()
-
-    logger.info("Server started")
-    logger.info("Open http://localhost:8000/api/ping")
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    # await db.close()
-    logger.info("Server shutting down")
+# #
+# # from pyspark.sql import SparkSession
+# #
+# # # Создайте SparkSession
+# # spark = SparkSession.builder.appName("SelectFields").getOrCreate()
+# #
+# # # Пример данных
+# # data = [("John", 30, "Male"), ("Alice", 25, "Female"), ("Bob", 35, "Male")]
+# # columns = ["Name", "Age", "Gender"]
+# #
+# # # Создайте DataFrame
+# # df = spark.createDataFrame(data, columns)
+# #
+# # # Покажите исходный DataFrame
+# # print("Исходный DataFrame:")
+# # df.show()
+# #
+# # # Выберите только определенные поля (например, "Name" и "Age")
+# # selected_fields = df.select("Name", "Age")
+# #
+# # # Покажите DataFrame с выбранными полями
+# # print("DataFrame с выбранными полями:")
+# # selected_fields.show()
+# #
+# # # Преобразуйте DataFrame в RDD и маппинг для создания объектов
+# # selected_objects = selected_fields.rdd.map(lambda row: {"Name": row["Name"], "Age": row["Age"]})
+# #
+# # # Соберите результат в список (может потребоваться использовать collect() осторожно)
+# # result_list = selected_objects.collect()
+# #
+# # # Выведите результат
+# # print("Результат:")
+# # for obj in result_list:
+# #     print(obj)
+# #
+# # # Остановите SparkSession
+# # spark.stop()
 
 
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title="DSaAolVol-Kinopoisk API DATA FILTER",
-        version="0.1",
-        routes=app.routes,
-    )
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi
+# from pyspark.sql import SparkSession
+#
+# # Создайте SparkSession
+# spark = SparkSession.builder.appName("MoviesTableExample").getOrCreate()
+#
+# # Ваш JSON-файл или данные
+# json_data = '{"movies": [{"name": "film_2"}, {"name": "film_1"}]}'
+#
+# # Прочитайте JSON-данные в DataFrame
+# df = spark.read.json(spark.sparkContext.parallelize([json_data]))
+#
+# # Покажите DataFrame
+# df.show(truncate=False)
+# # Выберите объект 'movies' и преобразуйте его в DataFrame
+# movies_df = df.select("movies").selectExpr("explode(movies) as movie")
+#
+# # Покажите новую таблицу 'movies'
+# movies_df.show(truncate=False)
