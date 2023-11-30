@@ -1,115 +1,125 @@
 version: '3.8'
 services:
-#  extractor:
-#    build:
-#      context: "./services/api_data_extractor"
-#      dockerfile: "Dockerfile"
-#    environment:
-#      UVICORN_SERVER_PORT: "8080"
-#      API_PREFIX: "/api"
-#      WORKERS_COUNT: "1"
-#      BROKER_HOST: "rabbitmq"
-#      BROKER_PORT: "5672"
-#      BROKER_USER: "rabbitmq"
-#      BROKER_PASS: "rabbitmq_pass"
-#      ELASTIC_HOST: "elasticsearch"
-#      ELASTIC_PORT: "9300"
-#      ELASTIC_PASSWORD: "elasticsearch_pass"
-#      LOGSTASH_HOST: "logstash"
-#      LOGSTASH_PORT: "50000"
-#      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
-#      KIBANA_HOST: "kibana"
-#      KIBANA_PORT: "5601"
-#      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
-#      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
-#      BEATS_SYSTEM_PASSWORD: "beats_pass"
-#      SPARK_HOST: "spark"
-#      SPARK_PORT: "7077"
-#      SPARK_USER: "spark"
-#    container_name: "extractor"
-#    volumes:
-#      - "./services/api_data_extractor:/app/"
-#    command: "bash entrypoint.sh"
-#    ports:
-#      - "8081:8080"
-#    depends_on:
-#      - "rabbitmq"
-#      - "spark"
-#
-#  filter:
-#    build:
-#      context: "./services/api_data_filter"
-#      dockerfile: "Dockerfile"
-#    environment:
-#      UVICORN_SERVER_PORT: "8080"
-#      API_PREFIX: "/api"
-#      WORKERS_COUNT: "1"
-#      BROKER_HOST: "rabbitmq"
-#      BROKER_PORT: "5672"
-#      BROKER_USER: "rabbitmq"
-#      BROKER_PASS: "rabbitmq_pass"
-#      ELASTIC_HOST: "elasticsearch"
-#      ELASTIC_PORT: "9300"
-#      ELASTIC_PASSWORD: "elasticsearch_pass"
-#      LOGSTASH_HOST: "logstash"
-#      LOGSTASH_PORT: "50000"
-#      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
-#      KIBANA_HOST: "kibana"
-#      KIBANA_PORT: "5601"
-#      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
-#      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
-#      BEATS_SYSTEM_PASSWORD: "beats_pass"
-#      SPARK_HOST: "spark"
-#      SPARK_PORT: "7077"
-#      SPARK_USER: "spark"
-#    container_name: "filter"
-#    volumes:
-#      - "./services/api_data_filter:/app/"
-#    command: "bash entrypoint.sh"
-#    ports:
-#      - "8082:8080"
-#    depends_on:
-#      - "rabbitmq"
-#      - "spark"
-#
-#  receiver:
-#    build:
-#      context: "./services/api_data_receiver"
-#      dockerfile: "Dockerfile"
-#    environment:
-#      UVICORN_SERVER_PORT: "8080"
-#      API_PREFIX: "/api"
-#      WORKERS_COUNT: "1"
-#      BROKER_HOST: "rabbitmq"
-#      BROKER_PORT: "5672"
-#      BROKER_USER: "rabbitmq"
-#      BROKER_PASS: "rabbitmq_pass"
-#      ELASTIC_HOST: "elasticsearch"
-#      ELASTIC_PORT: "9300"
-#      ELASTIC_PASSWORD: "elasticsearch_pass"
-#      LOGSTASH_HOST: "logstash"
-#      LOGSTASH_PORT: "50000"
-#      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
-#      KIBANA_HOST: "kibana"
-#      KIBANA_PORT: "5601"
-#      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
-#      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
-#      BEATS_SYSTEM_PASSWORD: "beats_pass"
-#      SPARK_HOST: "spark"
-#      SPARK_PORT: "7077"
-#      SPARK_USER: "spark"
-#    container_name: "receiver"
-#    volumes:
-#      - "./services/api_data_receiver:/app/"
-#    command: "bash entrypoint.sh"
-#    ports:
-#      - "8083:8080"
-#    depends_on:
-#      - "rabbitmq"
-#      - "spark"
+  extractor:
+    build:
+      context: "./py_services/api_data_extractor"
+      dockerfile: "Dockerfile"
+    environment:
+      RECEIVER_URL: http://receiver:8080/receive_data/
+      KINOPOISK_API_TOKEN: WEVNB1N-DNQMHFM-Q340T2S-RQHAD7V
+      UVICORN_SERVER_PORT: "8080"
+      API_PREFIX: ""
+      WORKERS_COUNT: "1"
+      BROKER_HOST: "rabbitmq"
+      BROKER_PORT: "5672"
+      BROKER_USER: "rabbitmq"
+      BROKER_PASS: "rabbitmq_pass"
+      ELASTIC_HOST: "elasticsearch"
+      ELASTIC_PORT: "9300"
+      ELASTIC_PASSWORD: "elasticsearch_pass"
+      LOGSTASH_HOST: "logstash"
+      LOGSTASH_PORT: "50000"
+      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
+      KIBANA_HOST: "kibana"
+      KIBANA_PORT: "5601"
+      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
+      BEATS_SYSTEM_PASSWORD: "beats_pass"
+      SPARK_HOST: "spark"
+      SPARK_PORT: "7077"
+      SPARK_USER: "spark"
+    container_name: "extractor"
+    volumes:
+      - "./py_services/api_data_extractor:/app/"
+    command: "bash entrypoint.sh"
+    ports:
+      - "8081:8080"
+    depends_on:
+      - "rabbitmq"
+      - "spark"
+
+  filter:
+    build:
+      context: "./py_services/api_data_filter"
+      dockerfile: "Dockerfile"
+    restart: "always"
+    environment:
+      QUEUE_NAME: raw_data_queue
+      ELASTIC_QUEUE_NAME: logstash_processing_queue
+      JSON_FILE: files/movie_data.json
+      OUTPUT_JSON_FILE: files/movie_output
+      RABBIT_URL: amqp://admin2:admin2@rabbitmq/
+      UVICORN_SERVER_PORT: "8080"
+      API_PREFIX: ""
+      WORKERS_COUNT: "1"
+      BROKER_HOST: "rabbitmq"
+      BROKER_PORT: "5672"
+      BROKER_USER: "rabbitmq"
+      BROKER_PASS: "rabbitmq_pass"
+      ELASTIC_HOST: "elasticsearch"
+      ELASTIC_PORT: "9300"
+      ELASTIC_PASSWORD: "elasticsearch_pass"
+      LOGSTASH_HOST: "logstash"
+      LOGSTASH_PORT: "50000"
+      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
+      KIBANA_HOST: "kibana"
+      KIBANA_PORT: "5601"
+      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
+      BEATS_SYSTEM_PASSWORD: "beats_pass"
+      SPARK_HOST: "spark"
+      SPARK_PORT: "7077"
+      SPARK_USER: "spark"
+    container_name: "filter"
+    volumes:
+      - "./py_services/api_data_filter:/app/"
+    command: "bash entrypoint.sh"
+    ports:
+      - "8082:8080"
+    depends_on:
+      - "rabbitmq"
+      - "spark"
+
+  receiver:
+    build:
+      context: "./py_services/api_data_receiver"
+      dockerfile: "Dockerfile"
+    environment:
+      QUEUE_NAME: raw_data_queue
+      RABBIT_URL: amqp://admin:admin@rabbitmq/
+      UVICORN_SERVER_PORT: "8080"
+      API_PREFIX: ""
+      WORKERS_COUNT: "1"
+      BROKER_HOST: "rabbitmq"
+      BROKER_PORT: "5672"
+      BROKER_USER: "rabbitmq"
+      BROKER_PASS: "rabbitmq_pass"
+      ELASTIC_HOST: "elasticsearch"
+      ELASTIC_PORT: "9300"
+      ELASTIC_PASSWORD: "elasticsearch_pass"
+      LOGSTASH_HOST: "logstash"
+      LOGSTASH_PORT: "50000"
+      LOGSTASH_INTERNAL_PASSWORD: "logstash_pass"
+      KIBANA_HOST: "kibana"
+      KIBANA_PORT: "5601"
+      KIBANA_SYSTEM_PASSWORD: "kibana_pass"
+      FILEBEAT_INTERNAL_PASSWORD: "filebeat_pass"
+      BEATS_SYSTEM_PASSWORD: "beats_pass"
+      SPARK_HOST: "spark"
+      SPARK_PORT: "7077"
+      SPARK_USER: "spark"
+    container_name: "receiver"
+    volumes:
+      - "./py_services/api_data_receiver:/app/"
+    command: "bash entrypoint.sh"
+    ports:
+      - "8083:8080"
+    depends_on:
+      - "rabbitmq"
+      - "spark"
 #
   rabbitmq:
-    image: "rabbitmq:3-management"
+    image: "rabbitmq:3.10.7-management"
     hostname: "rabbitmq"
     restart: "always"
     environment:
@@ -123,34 +133,34 @@ services:
       - "15672:15672"
       - "5672:5672"
 #
-#  spark:
-#    image: "docker.io/bitnami/spark:3.5"
-#    hostname: "spark"
-#    environment:
-#      SPARK_MODE: "master"
-#      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
-#      SPARK_RPC_ENCRYPTION_ENABLED: "no"
-#      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
-#      SPARK_SSL_ENABLED: "no"
-#      SPARK_USER: "spark"
-#    container_name: "spark"
-#    ports:
-#      - "8084:8084"
-#      - "7077:7077"
-#  spark-worker:
-#    image: "docker.io/bitnami/spark:3.5"
-#    hostname: "spark-worker"
-#    environment:
-#      SPARK_MODE: "worker"
-#      SPARK_MASTER_URL: "spark://spark:7077"
-#      SPARK_WORKER_MEMORY: "1G"
-#      SPARK_WORKER_CORES: "1"
-#      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
-#      SPARK_RPC_ENCRYPTION_ENABLED: "no"
-#      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
-#      SPARK_SSL_ENABLED: "no"
-#      SPARK_USER: "spark"
-#    container_name: "spark-worker"
+  spark:
+    image: "docker.io/bitnami/spark:3.5"
+    hostname: "spark"
+    environment:
+      SPARK_MODE: "master"
+      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
+      SPARK_RPC_ENCRYPTION_ENABLED: "no"
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
+      SPARK_SSL_ENABLED: "no"
+      SPARK_USER: "spark"
+    container_name: "spark"
+    ports:
+      - "8084:8084"
+      - "7077:7077"
+  spark-worker:
+    image: "docker.io/bitnami/spark:3.5"
+    hostname: "spark-worker"
+    environment:
+      SPARK_MODE: "worker"
+      SPARK_MASTER_URL: "spark://spark:7077"
+      SPARK_WORKER_MEMORY: "1G"
+      SPARK_WORKER_CORES: "1"
+      SPARK_RPC_AUTHENTICATION_ENABLED: "no"
+      SPARK_RPC_ENCRYPTION_ENABLED: "no"
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: "no"
+      SPARK_SSL_ENABLED: "no"
+      SPARK_USER: "spark"
+    container_name: "spark-worker"
 
   elasticsearch:
     container_name: elasticsearch
