@@ -173,7 +173,7 @@ services:
       - bootstrap.memory_lock=true
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-      - ELASTIC_PASSWORD=elastic
+      - ELASTIC_PASSWORD=bVla25U30blxHn7T0F36
     ulimits:
       memlock:
         soft: -1
@@ -234,7 +234,7 @@ services:
 #      - XPACK_MANAGEMENT_ENABLED=true
       - XPACK_MANAGEMENT_ELASTICSEARCH_HOSTS=elasticsearch:9200
       - XPACK_MANAGEMENT_ELASTICSEARCH_USERNAME=logstash_system
-      - XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD=elastic
+      - XPACK_MANAGEMENT_ELASTICSEARCH_PASSWORD=Fx157rSrIhYOQpkguN7Z
       - XPACK_MONITORING_ENABLED=false
     depends_on:
       - elasticsearch
